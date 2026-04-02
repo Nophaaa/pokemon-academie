@@ -425,8 +425,8 @@ export default function Hero() {
         </p>
         <p className="hero__disclaimer">
           Non affilié à Pokérayou — même modpack, événement indépendant par{' '}
-          <a href="https://x.com/Etoile" target="_blank" rel="noopener noreferrer">
-            Étoile
+          <a href="https://x.com/AREtoiles" target="_blank" rel="noopener noreferrer">
+            Étoiles
           </a>
           .
         </p>

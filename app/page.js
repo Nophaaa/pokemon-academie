@@ -262,44 +262,6 @@ function HomePage() {
         refreshing={refreshing}
       />
 
-      <section className="section wiki-promo scroll-reveal">
-        <div className="section__inner">
-          <div className="wiki-promo__content">
-            <div className="wiki-promo__text">
-              <h2 className="section__title">Wiki Cobblemon</h2>
-              <p className="wiki-promo__desc">
-                Pokédex complet, guide débutant, recettes de fabrication, table des types, quiz Pokémon et bien plus.
-                Tout ce qu'il faut pour devenir le meilleur dresseur !
-              </p>
-            </div>
-            <div className="wiki-promo__cards">
-              <a href="/wiki" className="wiki-promo__card">
-                <span className="wiki-promo__card-icon">📖</span>
-                <span className="wiki-promo__card-label">Pokédex</span>
-                <span className="wiki-promo__card-desc">900+ Pokémon</span>
-              </a>
-              <a href="/wiki" className="wiki-promo__card">
-                <span className="wiki-promo__card-icon">⚔️</span>
-                <span className="wiki-promo__card-label">Types</span>
-                <span className="wiki-promo__card-desc">Table d'efficacité</span>
-              </a>
-              <a href="/wiki" className="wiki-promo__card">
-                <span className="wiki-promo__card-icon">🔨</span>
-                <span className="wiki-promo__card-label">Fabrication</span>
-                <span className="wiki-promo__card-desc">Recettes & crafts</span>
-              </a>
-              <a href="/wiki" className="wiki-promo__card">
-                <span className="wiki-promo__card-icon">🎮</span>
-                <span className="wiki-promo__card-label">Quiz</span>
-                <span className="wiki-promo__card-desc">Devine le Pokémon</span>
-              </a>
-            </div>
-            <a href="/wiki" className="btn btn--purple wiki-promo__btn">
-              Ouvrir le Wiki
-            </a>
-          </div>
-        </div>
-      </section>
 
       <HomeQuiz />
 
