@@ -14,7 +14,6 @@ import ClipPlayerModal from '@/app/components/ClipPlayerModal';
 import ClipsSection from '@/app/components/ClipsSection';
 import StreamModal from '@/app/components/StreamModal';
 import ScrollToTop from '@/app/components/ScrollToTop';
-import HomeQuiz from '@/app/components/HomeQuiz';
 import ToastContainer from '@/app/components/ToastContainer';
 import useScrollReveal from '@/app/hooks/useScrollReveal';
 
@@ -261,9 +260,6 @@ function HomePage() {
         onRefresh={handleRefresh}
         refreshing={refreshing}
       />
-
-
-      <HomeQuiz />
 
       <section className="section streamers-section scroll-reveal" id="streamers">
         <div className="section__inner">
