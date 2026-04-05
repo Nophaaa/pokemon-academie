@@ -90,7 +90,7 @@ export default function HomeQuiz() {
   const remainingRef = useRef([]);
 
   useEffect(() => {
-    fetch('/api/pokemon-names-fr')
+    fetch('/pokemon-names-fr.json')
       .then((r) => r.json())
       .then((data) => {
         if (!data.error) setFrNames(data);

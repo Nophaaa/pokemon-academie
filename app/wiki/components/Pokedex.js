@@ -86,7 +86,7 @@ export default function Pokedex() {
   useEffect(() => {
     fetch('/api/pokedex').then((r) => r.json()).then((data) => { if (data.error) throw new Error(data.error); setPokemon(data); }).catch((e) => setError(e.message)).finally(() => setLoading(false));
     fetch('/api/habitats').then((r) => r.json()).then((data) => { if (!data.error) setHabitats(data); }).catch((e) => { console.warn('Pokemon API error:', e); });
-    fetch('/api/pokemon-names-fr').then((r) => r.json()).then((data) => { if (!data.error) setFrNames(data); }).catch((e) => { console.warn('Pokemon API error:', e); });
+    fetch('/pokemon-names-fr.json').then((r) => r.json()).then((data) => { if (!data.error) setFrNames(data); }).catch((e) => { console.warn('Pokemon API error:', e); });
   }, []);
 
   const handleSelect = useCallback(async (p) => {

@@ -23,7 +23,7 @@ export default function Legendaires() {
   const [frNames, setFrNames] = useState({});
 
   useEffect(() => {
-    fetch('/api/pokemon-names-fr')
+    fetch('/pokemon-names-fr.json')
       .then((r) => r.json())
       .then((data) => {
         if (!data.error) setFrNames(data);
