@@ -87,21 +87,15 @@ export default function HomeQuiz() {
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
   const [imgReady, setImgReady] = useState(false);
-  const [namesLoaded, setNamesLoaded] = useState(false);
   const remainingRef = useRef([]);
 
   useEffect(() => {
     fetch('/api/pokemon-names-fr')
       .then((r) => r.json())
       .then((data) => {
-        if (!data.error) {
-          setFrNames(data);
-        }
-        setNamesLoaded(true);
+        if (!data.error) setFrNames(data);
       })
-      .catch(() => {
-        setNamesLoaded(true);
-      });
+      .catch(() => {});
   }, []);
 
   const startRound = useCallback(() => {
@@ -124,8 +118,8 @@ export default function HomeQuiz() {
   }, []);
 
   useEffect(() => {
-    if (namesLoaded) startRound();
-  }, [namesLoaded, startRound]);
+    startRound();
+  }, [startRound]);
 
   const handlePick = (id) => {
     if (revealed) return;
@@ -135,16 +129,7 @@ export default function HomeQuiz() {
     if (id === current.id) setScore((s) => s + 1);
   };
 
-  if (!current) {
-    return (
-      <section className="section home-quiz-section scroll-reveal" id="quiz">
-        <div className="section__inner">
-          <h2 className="section__title">Qui est ce Pokémon ?</h2>
-          <p className="home-quiz__subtitle">Chargement du quiz...</p>
-        </div>
-      </section>
-    );
-  }
+  if (!current) return null;
 
   const getName = (p) => frNames[p.id] || p.name;
 

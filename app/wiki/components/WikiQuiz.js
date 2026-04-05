@@ -153,21 +153,15 @@ export default function WikiQuiz() {
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
   const [imgReady, setImgReady] = useState(false);
-  const [namesLoaded, setNamesLoaded] = useState(false);
   const remainingRef = useRef([]);
 
   useEffect(() => {
     fetch('/api/pokemon-names-fr')
       .then((r) => r.json())
       .then((data) => {
-        if (!data.error) {
-          setFrNames(data);
-        }
-        setNamesLoaded(true);
+        if (!data.error) setFrNames(data);
       })
-      .catch(() => {
-        setNamesLoaded(true);
-      });
+      .catch(() => {});
   }, []);
 
   const startRound = useCallback(() => {
@@ -190,8 +184,8 @@ export default function WikiQuiz() {
   }, []);
 
   useEffect(() => {
-    if (namesLoaded) startRound();
-  }, [namesLoaded, startRound]);
+    startRound();
+  }, [startRound]);
 
   const handlePick = (id) => {
     if (revealed) return;
@@ -201,16 +195,7 @@ export default function WikiQuiz() {
     if (id === current.id) setScore((s) => s + 1);
   };
 
-  if (!current) {
-    return (
-      <div className="quiz-wrap">
-        <div className="quiz-hero">
-          <h2 className="quiz-hero__title">Qui est ce Pokémon ?</h2>
-          <p className="quiz-hero__desc">Chargement du quiz...</p>
-        </div>
-      </div>
-    );
-  }
+  if (!current) return null;
 
   const getName = (p) => frNames[p.id] || p.name;
 
