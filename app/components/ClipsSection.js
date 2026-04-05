@@ -2,6 +2,42 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import ClipCard from '@/app/components/ClipCard';
+import { formatDate, formatDuration, formatViews } from '@/lib/utils';
+
+function FeaturedClip({ clip, onPlay }) {
+  const [thumbError, setThumbError] = useState(false);
+  const thumbUrl = clip.thumbnail_url
+    ? clip.thumbnail_url.replace('%{width}', '640').replace('%{height}', '360')
+    : null;
+
+  return (
+    <button className="featured-clip" onClick={() => onPlay(clip)}>
+      <div className="featured-clip__thumb-wrap">
+        {thumbUrl && !thumbError && (
+          <img
+            src={thumbUrl}
+            alt={clip.title || 'Clip'}
+            className="featured-clip__thumb"
+            onError={() => setThumbError(true)}
+          />
+        )}
+        <div className="featured-clip__overlay">
+          <div className="featured-clip__play-icon" aria-hidden="true" />
+          <span className="featured-clip__badge">CLIP LE PLUS VU</span>
+        </div>
+      </div>
+      <div className="featured-clip__info">
+        <div className="featured-clip__title">{clip.title || 'Sans titre'}</div>
+        <div className="featured-clip__meta">
+          <span className="featured-clip__streamer">{clip.broadcaster_name}</span>
+          <span className="featured-clip__views">{formatViews(clip.view_count)} vues</span>
+          <span className="featured-clip__duration">{formatDuration(clip.duration)}</span>
+          <span>{formatDate(clip.created_at)}</span>
+        </div>
+      </div>
+    </button>
+  );
+}
 
 export default function ClipsSection({
   clips,
@@ -30,8 +66,18 @@ export default function ClipsSection({
     });
   }, [clips, sort]);
 
-  const visible = sorted.slice(0, page * clipsPerPage);
-  const hasMore = sorted.length > visible.length;
+  const topClip = useMemo(() => {
+    if (!clips || clips.length === 0) return null;
+    return [...clips].sort((a, b) => (b.view_count || 0) - (a.view_count || 0))[0];
+  }, [clips]);
+
+  const restClips = useMemo(() => {
+    if (!topClip) return sorted;
+    return sorted.filter((c) => c.id !== topClip.id);
+  }, [sorted, topClip]);
+
+  const visible = restClips.slice(0, page * clipsPerPage);
+  const hasMore = restClips.length > visible.length;
 
   return (
     <section className="section clips-section" id="clips" ref={sectionRef}>
@@ -57,26 +103,31 @@ export default function ClipsSection({
             <button className="btn btn--purple" onClick={onLoadAll} disabled={allClipsLoading}>
               {allClipsLoading ? 'Chargement…' : 'Tous les clips'}
             </button>
-            {clips !== null && (
+            {clips !== null && clipsTitle !== 'Tous les clips — Minecraft' && (
               <button className="btn btn--ghost" onClick={onClose}>
-                Fermer
+                Réinitialiser
               </button>
             )}
           </div>
         </div>
-        <div className="clips-grid" id="clipsGrid">
-          {clipsLoading ? (
-            <p className="clips-empty">Chargement des clips…</p>
-          ) : clips === null ? (
-            <p className="clips-empty">
-              Cliquez sur « Clips » d&apos;un streamer pour afficher ses meilleurs moments Minecraft.
-            </p>
-          ) : clips.length === 0 ? (
-            <p className="clips-empty">Aucun clip Minecraft trouvé.</p>
-          ) : (
-            visible.map((clip) => <ClipCard key={clip.id} clip={clip} onPlay={onPlayClip} />)
-          )}
-        </div>
+
+        {clipsLoading ? (
+          <p className="clips-empty">Chargement des clips…</p>
+        ) : clips === null || clips.length === 0 ? (
+          <p className="clips-empty">
+            {clips === null ? 'Chargement des clips…' : 'Aucun clip Minecraft trouvé.'}
+          </p>
+        ) : (
+          <>
+            {topClip && <FeaturedClip clip={topClip} onPlay={onPlayClip} />}
+            <div className="clips-grid" id="clipsGrid">
+              {visible.map((clip) => (
+                <ClipCard key={clip.id} clip={clip} onPlay={onPlayClip} />
+              ))}
+            </div>
+          </>
+        )}
+
         {hasMore && (
           <div className="clips-loadmore">
             <button className="btn btn--ghost" onClick={() => setPage((p) => p + 1)}>

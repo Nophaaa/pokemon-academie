@@ -28,9 +28,10 @@ function HomePage() {
   const [refreshing, setRefreshing] = useState(false);
 
   const [clips, setClips] = useState(null);
-  const [clipsTitle, setClipsTitle] = useState('Clips — Sélectionnez un streamer');
+  const [clipsTitle, setClipsTitle] = useState('Tous les clips — Minecraft');
   const [clipsLoading, setClipsLoading] = useState(false);
   const [allClipsLoading, setAllClipsLoading] = useState(false);
+  const [initialClipsLoaded, setInitialClipsLoaded] = useState(false);
 
   const [streamModal, setStreamModal] = useState(null);
   const [statsModal, setStatsModal] = useState(null);
@@ -130,6 +131,33 @@ function HomePage() {
     nextRefreshAt.current = Date.now() + REFRESH_INTERVAL;
   }, [loadAll]);
 
+  // Auto-load all clips once users are available
+  useEffect(() => {
+    if (initialClipsLoaded || loading || Object.keys(users).length === 0) return;
+    setInitialClipsLoaded(true);
+
+    (async () => {
+      setClipsLoading(true);
+      try {
+        const allUsers = Object.values(users);
+        const results = await Promise.all(
+          allUsers.map((u) =>
+            apiFetch(`/clips?broadcaster_id=${u.id}&first=20&started_at=${EVENT_START}`)
+              .then((d) => (d.data || []).filter((c) => c.game_id === MINECRAFT_GAME_ID && c.created_at >= EVENT_START))
+              .catch(() => []),
+          ),
+        );
+        const all = results.flat().sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        setClips(all);
+      } catch (err) {
+        console.error('Erreur chargement initial clips :', err);
+        setClips([]);
+      } finally {
+        setClipsLoading(false);
+      }
+    })();
+  }, [users, loading, initialClipsLoaded]);
+
   const handleLoadClips = useCallback(
     async (broadcasterId, displayName) => {
       clipsSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -187,9 +215,29 @@ function HomePage() {
   }, [users, showToast]);
 
   const handleCloseClips = useCallback(() => {
-    setClips(null);
-    setClipsTitle('Clips — Sélectionnez un streamer');
-  }, []);
+    // Reset to all clips instead of hiding
+    if (!initialClipsLoaded) return;
+    setClipsTitle('Tous les clips — Minecraft');
+    setAllClipsLoading(true);
+    (async () => {
+      try {
+        const allUsers = Object.values(users);
+        const results = await Promise.all(
+          allUsers.map((u) =>
+            apiFetch(`/clips?broadcaster_id=${u.id}&first=20&started_at=${EVENT_START}`)
+              .then((d) => (d.data || []).filter((c) => c.game_id === MINECRAFT_GAME_ID && c.created_at >= EVENT_START))
+              .catch(() => []),
+          ),
+        );
+        const all = results.flat().sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        setClips(all);
+      } catch {
+        setClips([]);
+      } finally {
+        setAllClipsLoading(false);
+      }
+    })();
+  }, [users, initialClipsLoaded]);
 
   const handleStatsClick = useCallback(
     async (userId, displayName, rawLogin) => {
