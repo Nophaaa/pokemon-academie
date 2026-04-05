@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const HOME_QUIZ_POKEMON = [
   { id: 25, name: 'Pikachu' },
@@ -38,17 +38,31 @@ export default function HomeQuiz() {
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
   const [imgReady, setImgReady] = useState(false);
+  const [namesLoaded, setNamesLoaded] = useState(false);
+  const lastAnswerId = useRef(null);
 
   useEffect(() => {
     fetch('/api/pokemon-names-fr')
       .then((r) => r.json())
-      .then(setFrNames)
-      .catch(() => {});
+      .then((data) => {
+        if (!data.error) {
+          setFrNames(data);
+        }
+        setNamesLoaded(true);
+      })
+      .catch(() => {
+        setNamesLoaded(true);
+      });
   }, []);
 
   const startRound = useCallback(() => {
     const available = HOME_QUIZ_POKEMON.length;
-    const answer = HOME_QUIZ_POKEMON[Math.floor(Math.random() * available)];
+    let answer;
+    do {
+      answer = HOME_QUIZ_POKEMON[Math.floor(Math.random() * available)];
+    } while (answer.id === lastAnswerId.current && available > 1);
+    lastAnswerId.current = answer.id;
+
     const wrong = [];
     while (wrong.length < 3) {
       const pick = HOME_QUIZ_POKEMON[Math.floor(Math.random() * available)];
@@ -63,8 +77,8 @@ export default function HomeQuiz() {
   }, []);
 
   useEffect(() => {
-    startRound();
-  }, [startRound]);
+    if (namesLoaded) startRound();
+  }, [namesLoaded, startRound]);
 
   const handlePick = (id) => {
     if (revealed) return;
@@ -74,7 +88,16 @@ export default function HomeQuiz() {
     if (id === current.id) setScore((s) => s + 1);
   };
 
-  if (!current) return null;
+  if (!current) {
+    return (
+      <section className="section home-quiz-section scroll-reveal" id="quiz">
+        <div className="section__inner">
+          <h2 className="section__title">Qui est ce Pokémon ?</h2>
+          <p className="home-quiz__subtitle">Chargement du quiz...</p>
+        </div>
+      </section>
+    );
+  }
 
   const getName = (p) => frNames[p.id] || p.name;
 
@@ -92,6 +115,7 @@ export default function HomeQuiz() {
         <div className="home-quiz__card">
           <div className="home-quiz__silhouette">
             <img
+              key={current.id}
               src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${current.id}.png`}
               alt="Silhouette Pokémon"
               className={`home-quiz__img${imgReady ? ' home-quiz__img--ready' : ''}${revealed ? ' home-quiz__img--revealed' : ''}`}
@@ -101,6 +125,7 @@ export default function HomeQuiz() {
                   requestAnimationFrame(() => setImgReady(true));
                 });
               }}
+              onError={() => setImgReady(true)}
             />
           </div>
           <div className="home-quiz__choices">

@@ -21,7 +21,8 @@ export default function ClipPlayerModal({ clip, onClose }) {
 
   if (!clip) return null;
 
-  const parent = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  const parents = hostname === 'localhost' ? 'localhost' : hostname;
   const slug = clip.id;
 
   return (
@@ -46,8 +47,10 @@ export default function ClipPlayerModal({ clip, onClose }) {
         </div>
         <div className="clip-player-modal__player">
           <iframe
-            src={`https://clips.twitch.tv/embed?clip=${encodeURIComponent(slug)}&parent=${parent}&autoplay=true`}
+            key={slug}
+            src={`https://clips.twitch.tv/embed?clip=${encodeURIComponent(slug)}&parent=${encodeURIComponent(parents)}&autoplay=true`}
             allowFullScreen
+            allow="autoplay"
             title={clip.title || 'Clip Twitch'}
           />
         </div>

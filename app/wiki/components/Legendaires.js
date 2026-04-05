@@ -342,6 +342,14 @@ export default function Legendaires() {
                         </span>
                       </div>
                     )}
+                    {selected.item && (
+                      <div className="pokedex-obtain-row">
+                        <span className="pokedex-obtain-row__label">Objet associé</span>
+                        <span className="pokedex-obtain-row__val" style={{ color: '#ffa726', fontWeight: 600 }}>
+                          {selected.item}
+                        </span>
+                      </div>
+                    )}
                     <div className="pokedex-obtain-row">
                       <span className="pokedex-obtain-row__label">Commande admin</span>
                       <span

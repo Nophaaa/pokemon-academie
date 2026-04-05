@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const QUIZ_POKEMON = [
   { id: 25, name: 'Pikachu' },
@@ -54,19 +54,31 @@ export default function WikiQuiz() {
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
   const [imgReady, setImgReady] = useState(false);
+  const [namesLoaded, setNamesLoaded] = useState(false);
+  const lastAnswerId = useRef(null);
 
   useEffect(() => {
     fetch('/api/pokemon-names-fr')
       .then((r) => r.json())
-      .then(setFrNames)
-      .catch((e) => {
-        console.warn('Pokemon API error:', e);
+      .then((data) => {
+        if (!data.error) {
+          setFrNames(data);
+        }
+        setNamesLoaded(true);
+      })
+      .catch(() => {
+        setNamesLoaded(true);
       });
   }, []);
 
   const startRound = useCallback(() => {
     const available = QUIZ_POKEMON.length;
-    const answer = QUIZ_POKEMON[Math.floor(Math.random() * available)];
+    let answer;
+    do {
+      answer = QUIZ_POKEMON[Math.floor(Math.random() * available)];
+    } while (answer.id === lastAnswerId.current && available > 1);
+    lastAnswerId.current = answer.id;
+
     const wrong = [];
     while (wrong.length < 3) {
       const pick = QUIZ_POKEMON[Math.floor(Math.random() * available)];
@@ -81,8 +93,8 @@ export default function WikiQuiz() {
   }, []);
 
   useEffect(() => {
-    startRound();
-  }, [startRound]);
+    if (namesLoaded) startRound();
+  }, [namesLoaded, startRound]);
 
   const handlePick = (id) => {
     if (revealed) return;
@@ -92,7 +104,17 @@ export default function WikiQuiz() {
     if (id === current.id) setScore((s) => s + 1);
   };
 
-  if (!current) return null;
+  if (!current) {
+    return (
+      <div className="quiz-wrap">
+        <div className="quiz-hero">
+          <h2 className="quiz-hero__title">Qui est ce Pokémon ?</h2>
+          <p className="quiz-hero__desc">Chargement du quiz...</p>
+        </div>
+      </div>
+    );
+  }
+
   const getName = (p) => frNames[p.id] || p.name;
 
   return (
@@ -108,6 +130,7 @@ export default function WikiQuiz() {
       <div className="quiz-card">
         <div className="quiz-card__silhouette">
           <img
+            key={current.id}
             src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${current.id}.png`}
             alt="Silhouette Pokémon"
             className={`quiz-card__img${imgReady ? ' quiz-card__img--ready' : ''}${revealed ? ' quiz-card__img--revealed' : ''}`}
@@ -117,6 +140,7 @@ export default function WikiQuiz() {
                 requestAnimationFrame(() => setImgReady(true));
               });
             }}
+            onError={() => setImgReady(true)}
           />
         </div>
         <div className="quiz-card__choices">

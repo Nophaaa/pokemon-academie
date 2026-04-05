@@ -176,7 +176,7 @@ export default function WikiClient({ tabs }) {
           <div className="wiki-footer__block">
             <p>
               <strong>Pokémon</strong> et tous les noms, personnages et éléments associés sont des marques déposées de{' '}
-              <strong>Nintendo / Game Freak / Creatures Inc.</strong> © 1995–2025.
+              <strong>Nintendo / Game Freak / Creatures Inc.</strong> © 1995–2026.
             </p>
           </div>
           <div className="wiki-footer__block">

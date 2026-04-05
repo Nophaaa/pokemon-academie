@@ -274,6 +274,53 @@ export default function Pokedex() {
                     {(cobblSpawn?.bucket || (!cobblSpawn && rarity)) && <div className="poke-card-obtain__row"><span className="poke-card-obtain__icon">⭐</span><span className="poke-card-obtain__label">Rareté</span><span className="poke-card-obtain__val" style={{ color: cobblSpawn?.bucket?.color || rarity?.color }}>{cobblSpawn?.bucket?.label || rarity?.label}</span></div>}
                   </div>
                 </div>
+                {chainPath.length > 1 && (
+                  <div className="poke-card-section">
+                    <div className="poke-card-section__title">Chaîne d'évolution</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', justifyContent: 'center', padding: '8px 0' }}>
+                      {chainPath.map((stage, idx) => (
+                        <div key={stage.id} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          {idx > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontSize: '0.7rem', color: 'var(--text-dim)', minWidth: '50px', textAlign: 'center' }}>
+                              <span style={{ fontSize: '1rem' }}>→</span>
+                              {stage.methodFrom && <span style={{ fontSize: '0.65rem', lineHeight: 1.2, maxWidth: '70px' }}>{stage.methodFrom}</span>}
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                            <img
+                              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${stage.id}.png`}
+                              alt={frNames[stage.id] || stage.name}
+                              style={{ width: '48px', height: '48px', imageRendering: 'pixelated', filter: stage.id === selected.id ? 'none' : 'brightness(0.7)' }}
+                            />
+                            <span style={{ fontSize: '0.65rem', fontWeight: stage.id === selected.id ? 700 : 400, color: stage.id === selected.id ? 'var(--accent)' : 'var(--text-dim)' }}>
+                              {frNames[stage.id] || stage.name}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {nextEvos.length > 0 && (
+                  <div className="poke-card-section">
+                    <div className="poke-card-section__title">Évolutions suivantes</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '6px 0' }}>
+                      {nextEvos.map((evo) => {
+                        const evoId = parseInt(evo.species.url.match(/\/(\d+)\//)?.[1] || '0', 10);
+                        const method = describeEvoMethod(evo.evolution_details);
+                        return (
+                          <div key={evo.species.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-surface, #ffffff08)', borderRadius: '8px', padding: '6px 10px' }}>
+                            <img src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${evoId}.png`} alt={frNames[evoId] || evo.species.name} style={{ width: '40px', height: '40px', imageRendering: 'pixelated' }} />
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{frNames[evoId] || evo.species.name}</div>
+                              {method && <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{method}</div>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div className="poke-card-section"><div className="poke-card-section__title">Statistiques de base</div><div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>{detail.stats.map((s, i) => <StatBar key={s.stat.name} name={s.stat.name} value={s.base_stat} index={i} />)}</div></div>
                 {detailTypes.length > 0 && (() => {
                   const weak = TYPES.filter((t) => getDefMult(detailTypes, t) >= 2);

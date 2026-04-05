@@ -1,12 +1,74 @@
-import { STREAMERS } from '@/lib/constants';
-import { formatPlaytime } from '@/lib/utils';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { STREAMERS, EVENT_START } from '@/lib/constants';
+import { apiFetch } from '@/lib/api';
+
+function parseDuration(dur) {
+  if (!dur) return 0;
+  const match = dur.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);
+  if (!match) return 0;
+  return (parseInt(match[1] || 0) * 3600) + (parseInt(match[2] || 0) * 60) + (parseInt(match[3] || 0));
+}
 
 export default function StatsBar({ streams, clips, loading }) {
   const liveCount = Object.keys(streams).length;
-  const playtime = formatPlaytime(streams);
   const totalClips = clips?.length ?? 0;
+  const [totalHours, setTotalHours] = useState(null);
+  const [hoursLoading, setHoursLoading] = useState(true);
+
+  useEffect(() => {
+    if (loading) return;
+
+    let cancelled = false;
+
+    async function fetchTotalHours() {
+      setHoursLoading(true);
+      try {
+        const allUsers = Object.values(streams);
+        let userIds = allUsers.map((s) => s.user_id).filter(Boolean);
+
+        if (userIds.length === 0) {
+          const userParams = STREAMERS.map((s) => `login=${encodeURIComponent(s)}`).join('&');
+          const usersData = await apiFetch(`/users?${userParams}`);
+          userIds = (usersData.data || []).map((u) => u.id);
+        }
+
+        const results = await Promise.all(
+          userIds.map((uid) =>
+            apiFetch(`/videos?user_id=${uid}&type=archive&first=100`)
+              .then((d) => {
+                const vods = (d.data || []).filter((v) => v.created_at >= EVENT_START);
+                return vods.reduce((sum, v) => sum + parseDuration(v.duration), 0);
+              })
+              .catch(() => 0),
+          ),
+        );
+
+        // Also add live stream time
+        const liveSeconds = Object.values(streams).reduce((sum, st) => {
+          return sum + Math.max(0, (Date.now() - new Date(st.started_at).getTime()) / 1000);
+        }, 0);
+
+        const totalSeconds = results.reduce((a, b) => a + b, 0) + liveSeconds;
+        if (!cancelled) {
+          setTotalHours(Math.floor(totalSeconds / 3600));
+          setHoursLoading(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setTotalHours(0);
+          setHoursLoading(false);
+        }
+      }
+    }
+
+    fetchTotalHours();
+    return () => { cancelled = true; };
+  }, [streams, loading]);
 
   const val = (v) => (loading ? '—' : v);
+  const hoursVal = loading || hoursLoading ? '—' : totalHours;
 
   return (
     <section className="stats-bar">
@@ -38,7 +100,7 @@ export default function StatsBar({ streams, clips, loading }) {
           </div>
           <div className="stats-card__pokeball-bottom">
             <div className="stats-card__label">TEMPS DE JEU</div>
-            <div className="stats-card__value">{val(playtime)}</div>
+            <div className="stats-card__value">{hoursVal}</div>
             <div className="stats-card__sub">heures de stream</div>
           </div>
         </div>

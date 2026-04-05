@@ -3,15 +3,25 @@
 import { useState } from 'react';
 import { formatDate, formatDuration, formatViews, isRecentClip } from '@/lib/utils';
 
+function getThumbUrl(clip) {
+  if (!clip.thumbnail_url) return null;
+  try {
+    return clip.thumbnail_url.replace('%{width}', '480').replace('%{height}', '270');
+  } catch {
+    return null;
+  }
+}
+
 export default function ClipCard({ clip, onPlay }) {
   const [thumbError, setThumbError] = useState(false);
+  const thumbUrl = getThumbUrl(clip);
 
   return (
     <button className="clip-card" onClick={() => onPlay(clip)} title={clip.title}>
       <div className="clip-card__thumb-wrap">
-        {!thumbError && (
+        {thumbUrl && !thumbError && (
           <img
-            src={clip.thumbnail_url.replace('%{width}', '480').replace('%{height}', '270')}
+            src={thumbUrl}
             alt={clip.title || `Clip de ${clip.broadcaster_name}`}
             className="clip-card__thumb"
             loading="lazy"
