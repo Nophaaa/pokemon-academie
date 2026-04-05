@@ -25,6 +25,9 @@ export default function Navbar({ onRefresh, refreshing, theme, onToggleTheme, co
             Clips
           </a>
         </li>
+        <li>
+          <a href="/wiki">Wiki</a>
+        </li>
       </ul>
       <div className="navbar__actions">
         {countdown && <span className="refresh-countdown">{countdown}</span>}
