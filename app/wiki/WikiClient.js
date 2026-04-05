@@ -1,15 +1,17 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useState } from 'react';
 import Accueil from '@/app/wiki/components/Accueil';
-import Commands from '@/app/wiki/components/Commands';
-import Crafting from '@/app/wiki/components/Crafting';
-import Guide from '@/app/wiki/components/Guide';
-import Legendaires from '@/app/wiki/components/Legendaires';
-import Pokedex from '@/app/wiki/components/Pokedex';
-import Starters from '@/app/wiki/components/Starters';
-import TypeCalculator from '@/app/wiki/components/TypeCalculator';
-import WikiQuiz from '@/app/wiki/components/WikiQuiz';
+
+const Commands = dynamic(() => import('@/app/wiki/components/Commands'));
+const Crafting = dynamic(() => import('@/app/wiki/components/Crafting'));
+const Guide = dynamic(() => import('@/app/wiki/components/Guide'));
+const Legendaires = dynamic(() => import('@/app/wiki/components/Legendaires'));
+const Pokedex = dynamic(() => import('@/app/wiki/components/Pokedex'));
+const Starters = dynamic(() => import('@/app/wiki/components/Starters'));
+const TypeCalculator = dynamic(() => import('@/app/wiki/components/TypeCalculator'));
+const WikiQuiz = dynamic(() => import('@/app/wiki/components/WikiQuiz'));
 
 const WIKI_SEARCH_TARGETS = [
   { tab: 'pokedex', keywords: ['pokémon', 'pokemon', 'pokédex', 'pokedex', 'sprite', 'stats', 'capture'] },

@@ -137,12 +137,21 @@ export default function Hero() {
       mouseRef.current = { x: e.clientX - r.left, y: e.clientY - r.top };
     };
 
+    const onTouchMove = (e) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      const r = el.getBoundingClientRect();
+      mouseRef.current = { x: touch.clientX - r.left, y: touch.clientY - r.top };
+    };
+
     const onLeave = () => {
       mouseRef.current = { x: -999, y: -999 };
     };
 
     el.addEventListener('mousemove', onMove);
     el.addEventListener('mouseleave', onLeave);
+    el.addEventListener('touchmove', onTouchMove, { passive: true });
+    el.addEventListener('touchend', onLeave);
     window.addEventListener('resize', resize);
 
     let time = 0;
@@ -327,6 +336,8 @@ export default function Hero() {
       observer.disconnect();
       el.removeEventListener('mousemove', onMove);
       el.removeEventListener('mouseleave', onLeave);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onLeave);
       window.removeEventListener('resize', resize);
     };
   }, []);
@@ -358,13 +369,22 @@ export default function Hero() {
     }
   }, []);
 
-  const handleClick = useCallback(
+  const handleInteraction = useCallback(
     (e) => {
       const el = heroRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
-      const mx = e.clientX - r.left;
-      const my = e.clientY - r.top;
+      let mx, my;
+      if (e.touches && e.touches[0]) {
+        mx = e.touches[0].clientX - r.left;
+        my = e.touches[0].clientY - r.top;
+      } else if (e.changedTouches && e.changedTouches[0]) {
+        mx = e.changedTouches[0].clientX - r.left;
+        my = e.changedTouches[0].clientY - r.top;
+      } else {
+        mx = e.clientX - r.left;
+        my = e.clientY - r.top;
+      }
       for (const ball of ballsRef.current) {
         if (ball.caught) continue;
         const dx = ball.x - mx;
@@ -392,7 +412,7 @@ export default function Hero() {
   );
 
   return (
-    <section className="hero" id="accueil" ref={heroRef} onClick={handleClick} style={{ cursor: 'crosshair' }}>
+    <section className="hero" id="accueil" ref={heroRef} onClick={handleInteraction} onTouchStart={handleInteraction} style={{ cursor: 'crosshair' }}>
       <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
       {caught > 0 && (
         <div className="hero-catch-counter">
