@@ -55,7 +55,7 @@ export default function WikiQuiz() {
   const [total, setTotal] = useState(0);
   const [imgReady, setImgReady] = useState(false);
   const [namesLoaded, setNamesLoaded] = useState(false);
-  const lastAnswerId = useRef(null);
+  const remainingRef = useRef([]);
 
   useEffect(() => {
     fetch('/api/pokemon-names-fr')
@@ -72,16 +72,14 @@ export default function WikiQuiz() {
   }, []);
 
   const startRound = useCallback(() => {
-    const available = QUIZ_POKEMON.length;
-    let answer;
-    do {
-      answer = QUIZ_POKEMON[Math.floor(Math.random() * available)];
-    } while (answer.id === lastAnswerId.current && available > 1);
-    lastAnswerId.current = answer.id;
+    if (remainingRef.current.length === 0) {
+      remainingRef.current = [...QUIZ_POKEMON].sort(() => Math.random() - 0.5);
+    }
+    const answer = remainingRef.current.pop();
 
     const wrong = [];
     while (wrong.length < 3) {
-      const pick = QUIZ_POKEMON[Math.floor(Math.random() * available)];
+      const pick = QUIZ_POKEMON[Math.floor(Math.random() * QUIZ_POKEMON.length)];
       if (pick.id !== answer.id && !wrong.find((w) => w.id === pick.id)) wrong.push(pick);
     }
     const all = [answer, ...wrong].sort(() => Math.random() - 0.5);
