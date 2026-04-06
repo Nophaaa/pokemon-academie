@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import { STREAMERS, EVENT_START } from '@/lib/constants';
 import { apiFetch } from '@/lib/api';
+import { formatViews } from '@/lib/utils';
+
+const HOURS_CACHE_KEY = 'pa2_streamer_hours';
 
 function parseDuration(dur) {
   if (!dur) return 0;
@@ -11,11 +14,28 @@ function parseDuration(dur) {
   return (parseInt(match[1] || 0) * 3600) + (parseInt(match[2] || 0) * 60) + (parseInt(match[3] || 0));
 }
 
+function loadCachedHours() {
+  try {
+    const raw = localStorage.getItem(HOURS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveCachedHours(cache) {
+  try {
+    localStorage.setItem(HOURS_CACHE_KEY, JSON.stringify(cache));
+  } catch { /* quota exceeded — ignore */ }
+}
+
 export default function StatsBar({ streams, clips, loading }) {
   const liveCount = Object.keys(streams).length;
   const totalClips = clips?.length ?? 0;
   const [totalHours, setTotalHours] = useState(null);
   const [hoursLoading, setHoursLoading] = useState(true);
+
+  const totalViewers = Object.values(streams).reduce((sum, s) => sum + (s.viewer_count || 0), 0);
 
   useEffect(() => {
     if (loading) return;
@@ -34,16 +54,24 @@ export default function StatsBar({ streams, clips, loading }) {
           userIds = (usersData.data || []).map((u) => u.id);
         }
 
+        const cache = loadCachedHours();
+
         const results = await Promise.all(
           userIds.map((uid) =>
             apiFetch(`/videos?user_id=${uid}&type=archive&first=100`)
               .then((d) => {
                 const vods = (d.data || []).filter((v) => v.created_at >= EVENT_START);
-                return vods.reduce((sum, v) => sum + parseDuration(v.duration), 0);
+                const fetchedSeconds = vods.reduce((sum, v) => sum + parseDuration(v.duration), 0);
+                const cached = cache[uid] || 0;
+                const best = Math.max(cached, fetchedSeconds);
+                cache[uid] = best;
+                return best;
               })
-              .catch(() => 0),
+              .catch(() => cache[uid] || 0),
           ),
         );
+
+        saveCachedHours(cache);
 
         // Also add live stream time
         const liveSeconds = Object.values(streams).reduce((sum, st) => {
@@ -91,6 +119,16 @@ export default function StatsBar({ streams, clips, loading }) {
           <div className="stats-card__pokeball-bottom">
             <div className="stats-card__label">PARTICIPANTS</div>
             <div className="stats-card__value">{STREAMERS.length}</div>
+          </div>
+        </div>
+        <div className="stats-card stats-card--green">
+          <div className="stats-card__pokeball-top"></div>
+          <div className="stats-card__pokeball-divider">
+            <span className="stats-card__pokeball-btn"></span>
+          </div>
+          <div className="stats-card__pokeball-bottom">
+            <div className="stats-card__label">SPECTATEURS</div>
+            <div className="stats-card__value">{val(formatViews(totalViewers))}</div>
           </div>
         </div>
         <div className="stats-card stats-card--blue">

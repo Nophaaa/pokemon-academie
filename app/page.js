@@ -256,11 +256,20 @@ function HomePage() {
         const topClip = [...allClips].sort((a, b) => (b.view_count || 0) - (a.view_count || 0))[0] ?? null;
 
         const mcVideos = (videosData.data || []).filter((v) => v.created_at >= EVENT_START);
-        const totalStreamH = mcVideos.reduce((sum, v) => {
+        const fetchedSeconds = mcVideos.reduce((sum, v) => {
           const match = v.duration?.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);
           if (!match) return sum;
           return sum + (parseInt(match[1] || 0) * 3600 + parseInt(match[2] || 0) * 60 + parseInt(match[3] || 0));
         }, 0);
+
+        // Persist max hours per streamer to handle VOD expiration
+        const HOURS_CACHE_KEY = 'pa2_streamer_hours';
+        let cache = {};
+        try { cache = JSON.parse(localStorage.getItem(HOURS_CACHE_KEY) || '{}'); } catch { /* ignore */ }
+        const cached = cache[userId] || 0;
+        const bestSeconds = Math.max(cached, fetchedSeconds);
+        cache[userId] = bestSeconds;
+        try { localStorage.setItem(HOURS_CACHE_KEY, JSON.stringify(cache)); } catch { /* ignore */ }
 
         setStatsModal({
           user,
@@ -270,7 +279,7 @@ function HomePage() {
             totalClipViews,
             topClip,
             vodCount: mcVideos.length,
-            totalStreamH: Math.round((totalStreamH / 3600) * 10) / 10,
+            totalStreamH: Math.round((bestSeconds / 3600) * 10) / 10,
           },
         });
       } catch (err) {

@@ -610,6 +610,9 @@ img {
 .stats-card--purple .stats-card__pokeball-top {
   background: var(--purple);
 }
+.stats-card--green .stats-card__pokeball-top {
+  background: var(--green);
+}
 
 /* divider line with center button */
 .stats-card__pokeball-divider {
@@ -641,6 +644,9 @@ img {
 }
 .stats-card--purple .stats-card__pokeball-btn {
   box-shadow: 0 0 0 2px rgba(145, 71, 255, 0.5);
+}
+.stats-card--green .stats-card__pokeball-btn {
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.5);
 }
 
 /* white bottom half — classique pokéball */
@@ -690,6 +696,9 @@ img {
 }
 .stats-card--purple .stats-card__value {
   color: var(--purple);
+}
+.stats-card--green .stats-card__value {
+  color: var(--green);
 }
 
 .stats-card__sub {
