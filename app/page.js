@@ -306,7 +306,7 @@ function HomePage() {
       <Hero />
 
       <div className="scroll-reveal">
-        <StatsBar streams={streams} clips={clips} loading={loading} />
+        <StatsBar users={users} streams={streams} clips={clips} loading={loading} />
       </div>
 
       <LiveBanner

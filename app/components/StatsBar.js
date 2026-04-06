@@ -29,7 +29,7 @@ function saveCachedHours(cache) {
   } catch { /* quota exceeded — ignore */ }
 }
 
-export default function StatsBar({ streams, clips, loading }) {
+export default function StatsBar({ users, streams, clips, loading }) {
   const liveCount = Object.keys(streams).length;
   const totalClips = clips?.length ?? 0;
   const [totalHours, setTotalHours] = useState(null);
@@ -45,8 +45,8 @@ export default function StatsBar({ streams, clips, loading }) {
     async function fetchTotalHours() {
       setHoursLoading(true);
       try {
-        const allUsers = Object.values(streams);
-        let userIds = allUsers.map((s) => s.user_id).filter(Boolean);
+        // Always use all users, not just live ones
+        let userIds = Object.values(users).map((u) => u.id).filter(Boolean);
 
         if (userIds.length === 0) {
           const userParams = STREAMERS.map((s) => `login=${encodeURIComponent(s)}`).join('&');
@@ -93,7 +93,7 @@ export default function StatsBar({ streams, clips, loading }) {
 
     fetchTotalHours();
     return () => { cancelled = true; };
-  }, [streams, loading]);
+  }, [users, streams, loading]);
 
   const val = (v) => (loading ? '—' : v);
   const hoursVal = loading || hoursLoading ? '—' : totalHours;
